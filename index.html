@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Would you be my valentine? </title>
+    <title>Would you be my valentine?</title>
     
     <style>
-        /* CSS Reset & Centering */
         body {
             margin: 0;
             height: 100vh;
@@ -15,7 +14,7 @@
             align-items: center;
             background-color: #ffcad4;
             font-family: 'Arial', sans-serif;
-            overflow: hidden; /* Important: prevents scrollbars when button moves */
+            overflow: hidden; 
         }
 
         #card {
@@ -48,6 +47,7 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            transition: transform 0.1s ease; /* Slight haptic feel */
         }
 
         #yes-btn { 
@@ -58,70 +58,226 @@
         #no-btn { 
             background-color: #ff4d6d; 
             color: white; 
-            position: relative; /* Starts in flow */
+            position: relative; 
+            transition: all 0.2s ease; /* Makes the "teleport" smoother */
+        }
+
+        /* Container for the heart collage */
+        .heart-collage {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 20px auto;
+        }
+
+        .collage-img {
+            position: absolute;
+            width: 80px; /* Size of each individual photo */
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* This class triggers the animation */
+        .collage-img.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .sweet-text {
+            color: #ff4d6d;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+
+        /* Zoom Modal Styles */
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        #modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        /* Restart Button */
+        #restart-btn {
+            margin-top: 20px;
+            background-color: #ff4d6d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        #restart-btn:hover {
+            background-color: #ff758f;
+        }
+
+        .collage-img {
+            cursor: zoom-in; /* Shows the user they can click */
         }
     </style>
-
 </head>
 <body>
 
+<div id="modal" onclick="this.style.display='none'"><img id="modal-img"></div>
+
 <div id="card">
-    <img id="main-gif" 
-     src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueGZ4Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1z/cLS1cfxvGOPVpf9g3y/giphy.gif">
-    <!-- <img id="main-gif" src="/cute_bobbing_couple.gif"> -->
-    <h1 id="question"> Will you be my Valentine? </h1>
+    <img id="main-gif" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueGZ4Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1z/cLS1cfxvGOPVpf9g3y/giphy.gif">
+    <h1 id="question">Will you be my Valentine?</h1>
     <div class="btn-container">
-        <button id="yes-btn">Yes</button>
+        <button id="yes-btn">Si</button>
         <button id="no-btn">No</button>
     </div>
 </div>
 
 <script>
-    const noBtn = document.getElementById('no-btn');
+   const noBtn = document.getElementById('no-btn');
     const yesBtn = document.getElementById('yes-btn');
-    const header = document.getElementById('text-header');
     const mainGif = document.getElementById('main-gif');
+    
+    // 1. Audio Setup
+    const bgMusic = new Audio('/../audio.mp3');
+    bgMusic.loop = true;
+
+    // 2. The 3-Second Attempt
+    setTimeout(() => {
+        bgMusic.play().catch(e => {
+            console.log("Autoplay blocked. Music will start upon interaction.");
+        });
+    }, 2000);
 
     const phrases = [
-        "Are you sure?", "Really sure?", "Think again!", 
-        "Last chance!", "Surely not?", "Don't do this to me", 
-        "I'm gonna cry...", "You're breaking my heart ;("
+        "Sei sicura?",    
+        "Sicura sicura??", 
+        "Pensaci bene!",  
+        "Ultima occasione!",
+        "Ma come no?",
+        "Non farmi questo...",
+        "Adesso piango...",
+        "Mi stai spezzando il cuore ;(",
+        
+        "Ma guardami, come puoi dirmi di no?",
+        "E se ti comprassi un gelato?",   
+        "Stai cliccando il tasto sbagliato!",
+        "Sei senza cuore!", 
+        "Rifacciamo... farò finta di non aver visto.",
+        "Dai, non puoi farmi questo!",
+        "Guarda che il tasto 'Sì' è molto più bello."
     ];
 
     let count = 0;
 
-    // The Logic Engine
     const handleNoInteraction = () => {
-        // 1. Move to random coordinates
-        // We use window.innerWidth minus button width to stay in bounds
+        // 3. Fail-safe: Play music if the 3s timer was blocked
+        if (bgMusic.paused) {
+            bgMusic.play();
+        }
+
         const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-        const y = Math.random() * (Window.innerHeight - noBtn.offsetHeight);
+        const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
 
         noBtn.style.position = "absolute";
         noBtn.style.left = `${x}px`;
         noBtn.style.top = `${y}px`;
 
-        // 2. Update text from our array
         noBtn.innerText = phrases[count % phrases.length];
         count++;
 
-        // 3. Scale the Yes button (Exponential growth)
         const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
         yesBtn.style.fontSize = `${currentSize * 1.2}px`;
-        yesBtn.style.padding = `${parseFloat(window.getComputedStyle(yesBtn).padding) * 1.2}px`;
+        yesBtn.style.padding = `${parseFloat(window.getComputedStyle(yesBtn).padding) * 1.1}px`;
     };
 
-    // Attach listeners
-    noBtn.addEventListener('mousemover', handleNoInteraction);
-    noBtn.addEventListener('click', handleNoInteraction); // For mobile tab
+    noBtn.addEventListener('mouseover', handleNoInteraction);
+    noBtn.addEventListener('click', handleNoInteraction);
 
-    yesBtn.addEventListener('click', () => {
-        document.getElementById('card').innerHTML = `
-            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueGZ4Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1z/l41lTfuxV6MHTiH1S/giphy.gif">
-            <h1>Success! ❤️</h1>
+    // 1. Define the reusable function first
+    const startHeartAssembly = () => {
+        if (bgMusic.paused) bgMusic.play().catch(() => {});
+
+        // Coordinates for the 10 photos
+        const coords = [
+            {x: 135, y: 100}, {x: 70, y: 50},  {x: 200, y: 50},
+            {x: 20, y: 100},  {x: 250, y: 100},
+            {x: 40, y: 180},  {x: 230, y: 180},
+            {x: 80, y: 240},  {x: 190, y: 240},
+            {x: 135, y: 290}
+        ];
+
+        // 2. Build the HTML structure
+        card.innerHTML = `
+            <div id="heart-container" class="heart-collage"></div>
+            <div class="sweet-text">
+                Sei la migliore! ❤️<br>
+                Ogni momento con te è speciale.
+            </div>
+            <button id="restart-btn">Guarda di nuovo</button>
+            <button id="back-to-start" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer; display:block; width:100%;">Torna all'inizio</button>
         `;
-        noBtn.style.display = "none";
-    });
+
+        const container = document.getElementById('heart-container');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+            
+        // 3. Inject photos
+        coords.forEach((pos, index) => {
+            const img = document.createElement('img');
+            img.src = `photo${index + 1}.jpg`; 
+            img.className = 'collage-img';
+            img.style.left = `${pos.x}px`;
+            img.style.top = `${pos.y}px`;
+            
+            img.onclick = (e) => {
+                e.stopPropagation();
+                modalImg.src = img.src;
+                modal.style.display = 'flex';
+            };
+
+            container.appendChild(img);
+
+            setTimeout(() => {
+                img.classList.add('show');
+            }, index * 300); 
+        });
+
+        // 4. Assign the functions to the buttons
+        document.getElementById('restart-btn').onclick = startHeartAssembly;
+        
+        // This allows them to go back to the original question
+        document.getElementById('back-to-start').onclick = () => {
+            location.reload(); 
+        };
+
+        document.body.style.overflow = "auto";
+    };
+
+    // 5. Use that function when the Yes button is clicked
+    yesBtn.addEventListener('click', startHeartAssembly);
+
 </script>
 
 </body>
