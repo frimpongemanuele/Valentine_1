@@ -169,7 +169,25 @@
 </div>
 
 <script>
-   const noBtn = document.getElementById('no-btn');
+    // 1. Set your secret word (Case sensitive!)
+    const secretWord = "Mangiare"; 
+
+    // 2. Wrap everything in a check
+    const userEntry = prompt("Qual è la nostra cosa preferita da fare insieme:");
+
+    if (userEntry === null || userEntry.trim() !== secretWord) {
+        // If they click cancel or get it wrong
+        document.body.innerHTML = `
+            <div style="text-align:center; margin-top:20vh; font-family:Arial;">
+                <h2>Accesso negato</h2>
+                <p>La parola segreta non è corretta. Ricarica la pagina per riprovare.</p>
+            </div>
+        `;
+        // Stop the rest of the script from running
+        throw new Error("Access denied: Incorrect password");
+    }
+
+    const noBtn = document.getElementById('no-btn');
     const yesBtn = document.getElementById('yes-btn');
     const mainGif = document.getElementById('main-gif');
     
