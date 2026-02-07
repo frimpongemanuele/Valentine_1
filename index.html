@@ -139,6 +139,19 @@
         .collage-img {
             cursor: zoom-in; /* Shows the user they can click */
         }
+
+        /* Vibrate Animation */
+        @keyframes vibrate {
+            0% { transform: translate(0); }
+            25% { transform: translate(-3px, 3px); }
+            50% { transform: translate(3px, -3px); }
+            75% { transform: translate(-3px, -3px); }
+            100% { transform: translate(0); }
+        }
+
+        .vibrate {
+            animation: vibrate 0.5s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -146,11 +159,12 @@
 <div id="modal" onclick="this.style.display='none'"><img id="modal-img"></div>
 
 <div id="card">
-    <img id="main-gif" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueGZ4Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1z/cLS1cfxvGOPVpf9g3y/giphy.gif">
+    <img id="main-gif" src="cute_bobbing_couple.gif">
+    <!-- https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueGZ4Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1z/cLS1cfxvGOPVpf9g3y/giphy.gif -->
     <h1 id="question">Will you be my Valentine?</h1>
     <div class="btn-container">
         <button id="yes-btn">Si</button>
-        <button id="no-btn">No</button>
+        <button id="no-btn" class="vibrate">No</button>
     </div>
 </div>
 
@@ -179,7 +193,7 @@
         "Non farmi questo...",
         "Adesso piango...",
         "Mi stai spezzando il cuore ;(",
-        
+        "Fai la brava...",
         "Ma guardami, come puoi dirmi di no?",
         "E se ti comprassi un gelato?",   
         "Stai cliccando il tasto sbagliato!",
@@ -196,6 +210,16 @@
         if (bgMusic.paused) {
             bgMusic.play();
         }
+
+        // This ensures the vibration stops 2 seconds after the page is fully ready
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const btn = document.getElementById('no-btn');
+                if (btn) {
+                    btn.classList.remove('vibrate');
+                }
+            }, 2000); // Change 2000 to 3000 if you want it to last 3 seconds
+        });
 
         const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
         const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
@@ -232,8 +256,9 @@
         card.innerHTML = `
             <div id="heart-container" class="heart-collage"></div>
             <div class="sweet-text">
-                Sei la migliore! ❤️<br>
-                Ogni momento con te è speciale.
+                Questo è solo un piccolo gesto per ricordarti quanto <p> TI AMO! ❤️ </p><br>
+                <p> </p>
+                Ogni momento con te è unico e speciale.
             </div>
             <button id="restart-btn">Guarda di nuovo</button>
             <button id="back-to-start" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer; display:block; width:100%;">Torna all'inizio</button>
@@ -244,9 +269,26 @@
         const modalImg = document.getElementById('modal-img');
             
         // 3. Inject photos
+        // List your exact filenames here in the order you want them to appear
+        const photoFiles = [
+            'photo1.png', 
+            'photo2.JPG', 
+            'photo3.JPG', 
+            'photo4.JPG',
+            'photo5.JPG',
+            'photo6.jpeg',
+            'photo7.png',
+            'photo8.jpg',
+            'photo9.jpeg',
+            'photo10.JPG'
+        ];
+
         coords.forEach((pos, index) => {
             const img = document.createElement('img');
-            img.src = `photo${index + 1}.jpg`; 
+            
+            // Use the array above to get the specific filename
+            img.src = photoFiles[index]; 
+            
             img.className = 'collage-img';
             img.style.left = `${pos.x}px`;
             img.style.top = `${pos.y}px`;
